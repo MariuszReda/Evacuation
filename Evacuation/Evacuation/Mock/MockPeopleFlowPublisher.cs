@@ -1,21 +1,11 @@
-﻿using Evacuation.Domain;
-using Evacuation.Interface;
-using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Evacuation.Interface;
 
 namespace Evacuation.Mock
 {
     class MockPeopleFlowPublisher : IPeopleFlowPublisher
     {
         private bool _connection;
-        public MockPeopleFlowPublisher()
-        {
-            _connection = Connection().GetAwaiter().GetResult();
-        }
+
         private async Task<bool> Connection()
         {
             try
@@ -25,7 +15,7 @@ namespace Evacuation.Mock
             }
             catch(Exception ex)
             {
-                Console.WriteLine($"[ERROR] Błąd przy otwieraniu połączenia: {ex.Message}");
+                Console.WriteLine($"[ERROR] opening connection: {ex.Message}");
                 return false;
             }
         }
@@ -36,7 +26,7 @@ namespace Evacuation.Mock
                 if (!_connection) 
                 {
                     _connection = await Connection();
-                    await Console.Out.WriteLineAsync("Nawiązanie połączenia");
+                    await Console.Out.WriteLineAsync("Open Connecionto RabitMQ");
                 }
 
                 await Console.Out.WriteLineAsync("Publish message");

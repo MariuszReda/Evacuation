@@ -1,5 +1,7 @@
 ﻿using Evacuation.Domain;
 using Evacuation.Interface;
+using System.Collections.Concurrent;
+
 
 namespace Evacuation
 {
@@ -16,22 +18,23 @@ namespace Evacuation
             _repository = repository;
             _cameraSimulators = cameraSimulators;
             _publisher = publisher;
-            LoadExistingZones();
-            StartListeningCameras();
+            loadExistingZones();
         }
 
-        private void StartListeningCameras()
+        public void StartListeningCameras(CancellationToken token)
         {
             Task.Run(async () =>
             {
-                while (true)
+                while (!token.IsCancellationRequested)
                 {
                     try
                     {
+                        token.ThrowIfCancellationRequested();
+
                         var tasks = _cameraSimulators.Select(cam => cam.GenerateEventAsync(cam.GetCameraId()));
                         var events = await Task.WhenAll(tasks);
 
-                        await using(_publisher)                        
+                        await using (_publisher)
                         {
                             foreach (var jsonEvent in events)
                             {
@@ -40,19 +43,23 @@ namespace Evacuation
                             }
                         }
 
-
                         Console.WriteLine($"Total number of people on site {_totalPeople}:");
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        Console.WriteLine("Symulacja kamer została zatrzymana.");
+                        break;
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"[ERROR] Wystąpił błąd w StartListeningCameras(): {ex.Message}");
                     }
-                    await Task.Delay(5000);
+                    await Task.Delay(5000, token);
                 }
-            });
+            }, token);
         }
 
-        private void UpdateOfPeopleCount(CameraEvent data)
+        private void updateOfPeopleCount(CameraEvent data)
         {
             _totalPeople += data.PeopleIn - data.PeopleOut;
         }
@@ -60,37 +67,67 @@ namespace Evacuation
         public void ProcessCameraEvent(string jsonEvent)
         {
             var cameraEvent = CameraEventSerializer.FromJson(jsonEvent);
+
             if (!_zones.ContainsKey(cameraEvent.CameraId))
             {
                 _zones[cameraEvent.CameraId] = new ZoneOccupancy(cameraEvent.CameraId, _repository);
             }
             _zones[cameraEvent.CameraId].ProcessEvent(cameraEvent);
             Console.WriteLine($"Processed Event: {jsonEvent}");
-            UpdateOfPeopleCount(cameraEvent);
+            updateOfPeopleCount(cameraEvent);
         }
 
-        public IReadOnlyList<CameraEvent>? GetHistoryForZone(string zoneId)
+        public void RestoreFromAllCameraHistory()
         {
-            if (_zones.TryGetValue(zoneId, out var zone))
+            if (_zones.Count == 0)
             {
-                return zone.GetEventHistory();
+                Console.WriteLine("Brak zapisanych kamer w systemie.");
+                return;
             }
-            return null;
-        }
 
-        public int GetCurrentOccupancy(string zoneId)
-        {
-            return _zones.TryGetValue(zoneId, out var zone) ? zone.CurrentOccupancy : 0;
-        }
-
-        private void LoadExistingZones()
-        {
-            var zones = _repository.GetAllZones();
-            foreach (var zoneId in zones)
+            foreach (var zone in _zones)
             {
-                if (!_zones.ContainsKey(zoneId))
+                Console.WriteLine($"Historia zdarzeń dla kamery {zone.Key}:");
+                var eventHistoryForZone = zone.Value.GetEventHistory();
+                foreach (var eventHistory in eventHistoryForZone)
                 {
-                    _zones[zoneId] = new ZoneOccupancy(zoneId, _repository);
+                    Console.WriteLine($"{eventHistory.CameraId}, {eventHistory.Timestamp}, IN: {eventHistory.PeopleIn}, OUT {eventHistory.PeopleOut}");
+                }
+                Console.WriteLine($"Licznik w czasie rzeczywistym dla kamery {zone.Key}: {zone.Value.CurrentPeopleInZone}");
+                Console.WriteLine("--------------------------------------");
+            }
+
+        }
+
+        public void GetCurrentOccupancy(string zoneId)
+        {
+
+            if (_zones.TryGetValue(zoneId, out var zoneOccupancy))
+            {
+                var eventHistoryForZone = zoneOccupancy.GetEventHistory();
+                foreach (var eventHistory in eventHistoryForZone)
+                {
+                    Console.WriteLine($"{eventHistory.CameraId}, {eventHistory.Timestamp}, IN: {eventHistory.PeopleIn}, OUT {eventHistory.PeopleOut}");
+                }
+                Console.WriteLine($"Licznik w czasie rzeczywistym dla kamery {zoneId}: {zoneOccupancy.CurrentPeopleInZone}");
+            }
+            else
+            {
+                Console.WriteLine($"Strefa {zoneId} nie została znaleziona.");
+            }
+        }
+
+        private void loadExistingZones()
+        {
+            using (_repository)
+            {
+                var zones = _repository.GetAllZones();
+                foreach (var zoneId in zones)
+                {
+                    if (!_zones.ContainsKey(zoneId))
+                    {
+                        _zones[zoneId] = new ZoneOccupancy(zoneId, _repository);
+                    }
                 }
             }
         }

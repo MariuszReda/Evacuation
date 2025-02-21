@@ -17,12 +17,12 @@ var serviceProvider = new ServiceCollection()
             sp.GetRequiredService<List<ICameraSimulator>>(),
             sp.GetRequiredService<IPeopleFlowPublisher>()
         ))
+    .AddSingleton<StartAplication>()
     .BuildServiceProvider();
 
 
-var server = serviceProvider.GetRequiredService<CentralServer>();
+var start = serviceProvider.GetRequiredService<StartAplication>();
 
+await start.StartApp();
 
-Console.WriteLine("System ewakuacji uruchomiony. Naciśnij Enter, aby zakończyć.");
-Console.ReadLine();
 
