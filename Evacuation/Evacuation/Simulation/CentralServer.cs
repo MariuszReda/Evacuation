@@ -1,9 +1,10 @@
 ﻿using Evacuation.Domain;
+using Evacuation.Infrastructure;
 using Evacuation.Interface;
 using System.Collections.Concurrent;
 
 
-namespace Evacuation
+namespace Evacuation.Simulation
 {
     public class CentralServer
     {

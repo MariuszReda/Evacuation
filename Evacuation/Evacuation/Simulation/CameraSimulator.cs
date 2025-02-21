@@ -1,7 +1,8 @@
 ﻿using Evacuation.Domain;
+using Evacuation.Infrastructure;
 using Evacuation.Interface;
 
-namespace Evacuation
+namespace Evacuation.Simulation
 {
     public class CameraSimulator : ICameraSimulator
     {

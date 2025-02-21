@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Evacuation.Simulation;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Evacuation
+namespace Evacuation.Application
 {
     public class StartAplication
     {

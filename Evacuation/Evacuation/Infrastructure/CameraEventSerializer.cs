@@ -1,7 +1,7 @@
 ﻿using Evacuation.Domain;
 using System.Text.Json;
 
-namespace Evacuation
+namespace Evacuation.Infrastructure
 {
     public static class CameraEventSerializer
     {
