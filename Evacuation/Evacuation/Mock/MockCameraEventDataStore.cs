@@ -14,6 +14,7 @@ namespace Evacuation.Mock
         {
             _storage = InitializeMockData();
         }
+     
         public void SaveEvent(CameraEvent cameraEvent)
         {
             if (!_storage.ContainsKey(cameraEvent.CameraId))
@@ -34,11 +35,13 @@ namespace Evacuation.Mock
             return _zones.ToList();
         }
 
-        public void Dispose()
+
+        public async ValueTask DisposeAsync()
         {
-            Console.WriteLine("Close connection to DB");
+            Console.WriteLine("Zamkniecie połączenia z bazą danych");
             GC.SuppressFinalize(this);
         }
+
         private static ConcurrentDictionary<string, List<CameraEvent>> InitializeMockData()
         {
             return new ConcurrentDictionary<string, List<CameraEvent>>

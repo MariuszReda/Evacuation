@@ -1,6 +1,4 @@
 ﻿using Evacuation.Interface;
-using StackExchange.Redis;
-using System.Text.Json;
 
 namespace Evacuation.Domain
 {
@@ -23,10 +21,7 @@ namespace Evacuation.Domain
             _eventHistory.Add(cameraEvent);
             CurrentPeopleInZone += cameraEvent.PeopleIn - cameraEvent.PeopleOut;
 
-            using (_cameraEventRepository)
-            {
-                _cameraEventRepository.SaveEvent(cameraEvent);
-            }
+
 
             if (CurrentPeopleInZone < 0)
                 CurrentPeopleInZone = 0;

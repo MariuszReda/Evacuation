@@ -2,7 +2,7 @@
 
 namespace Evacuation.Interface
 {
-    public interface ICameraEventDataStore : IDisposable
+    public interface ICameraEventDataStore : IAsyncDisposable
     {
         void SaveEvent(CameraEvent cameraEvent);
         List<CameraEvent> LoadEvents(string zoneId);

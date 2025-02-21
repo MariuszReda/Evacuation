@@ -10,12 +10,12 @@ namespace Evacuation.Mock
         {
             try
             {
-                Console.WriteLine("Open Connecion to RabitMQ");
+                Console.WriteLine("Otwarto połączenie z RabbitMQ");
                 return true;
             }
             catch(Exception ex)
             {
-                Console.WriteLine($"[ERROR] opening connection: {ex.Message}");
+                Console.WriteLine($"Błąd podczas otwierania połączenia: {ex.Message}");
                 return false;
             }
         }
@@ -26,10 +26,10 @@ namespace Evacuation.Mock
                 if (!_connection) 
                 {
                     _connection = await Connection();
-                    await Console.Out.WriteLineAsync("Open Connecionto RabitMQ");
+                    Console.WriteLine("Otwarto połączenie z RabbitMQ");
                 }
 
-                await Console.Out.WriteLineAsync("Publish message");
+                Console.WriteLine("Wysłano komunikat do RabitMQ");
             }
             catch
             {
@@ -38,7 +38,7 @@ namespace Evacuation.Mock
         }
         public async ValueTask DisposeAsync()
         {
-            Console.WriteLine("Close connection to RabbitMQ");
+            Console.WriteLine("Zamknięcie połączenia z RabbitMQ");
             _connection = false;
             GC.SuppressFinalize(this);
         }

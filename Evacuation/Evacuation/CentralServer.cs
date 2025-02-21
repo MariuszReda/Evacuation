@@ -35,15 +35,18 @@ namespace Evacuation
                         var events = await Task.WhenAll(tasks);
 
                         await using (_publisher)
+                        await using (_repository)
                         {
                             foreach (var jsonEvent in events)
                             {
                                 await _publisher.PublishNumberOfPeopleAsync(jsonEvent);
+                                _repository.SaveEvent(CameraEventSerializer.FromJson(jsonEvent));
                                 ProcessCameraEvent(jsonEvent);
                             }
                         }
 
                         Console.WriteLine($"Total number of people on site {_totalPeople}:");
+
                     }
                     catch (OperationCanceledException)
                     {
@@ -73,8 +76,9 @@ namespace Evacuation
                 _zones[cameraEvent.CameraId] = new ZoneOccupancy(cameraEvent.CameraId, _repository);
             }
             _zones[cameraEvent.CameraId].ProcessEvent(cameraEvent);
-            Console.WriteLine($"Processed Event: {jsonEvent}");
+            Console.WriteLine($"Sygnał z kamery: {jsonEvent}");
             updateOfPeopleCount(cameraEvent);
+
         }
 
         public void RestoreFromAllCameraHistory()
@@ -117,9 +121,9 @@ namespace Evacuation
             }
         }
 
-        private void loadExistingZones()
+        private async Task loadExistingZones()
         {
-            using (_repository)
+            await using(_repository)
             {
                 var zones = _repository.GetAllZones();
                 foreach (var zoneId in zones)
