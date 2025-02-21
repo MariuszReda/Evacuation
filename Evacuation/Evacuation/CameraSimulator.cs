@@ -6,52 +6,34 @@ namespace Evacuation
 {
 
     //Symuluje prace kamery
-    public class CameraSimulator
+    public class CameraSimulator : ICameraSimulator
     {
-        public string Id { get; }
-        private readonly List<ICameraObserver> _observers = new List<ICameraObserver>();
         private readonly Random _random = new Random();
-        private readonly IPeopleFlowPublisher _reportPublisher;
-
-        public CameraSimulator(string id, IPeopleFlowPublisher raportPublisher)
+        private readonly string _cameraId;
+        public CameraSimulator(string cameraId)
         {
-            Id = id;
-            _reportPublisher = raportPublisher;
+            _cameraId = cameraId;
         }
-
-        public async Task GenerateEvent(int peopleIn, int peopleOut)
+        public string GetCameraId()
         {
-            var cameraEvent = new CameraEvent(Id, DateTime.UtcNow, peopleIn, peopleOut);
-            await SendReportAsync(cameraEvent);
+            return _cameraId;
         }
-
-        private async Task SendReportAsync(CameraEvent dataFromCameraOfEvent)
+        public async Task<string> GenerateEventAsync(string cameraId)
         {
-            string message = $"[{dataFromCameraOfEvent.Timestamp}] Kamera {dataFromCameraOfEvent.CameraId}: " +
-                    $"IN {dataFromCameraOfEvent.PeopleIn}, OUT {dataFromCameraOfEvent.PeopleOut}.";
 
-            await _reportPublisher.PublishReportAsync(message);
+            await Task.Delay(_random.Next(1000, 5000)); // Symulacja opóźnienia
+            var cameraEvent = new CameraEvent(
+                cameraId,
+                DateTime.UtcNow,
+                _random.Next(0, 5),
+                _random.Next(0, 5)
+            );
+
+            string message = $"[{cameraEvent.Timestamp}] Kamera {cameraEvent.CameraId}: " +
+                $"IN {cameraEvent.PeopleIn}, OUT {cameraEvent.PeopleOut}.";
+
+            return message;
+
         }
-
-        //public async Task StartStreamingAsync(CancellationToken cancellationToken)
-        //{
-        //    while (!cancellationToken.IsCancellationRequested)
-        //    {
-        //        int peopleIn = _random.Next(0, 5);
-        //        int peopleOut = _random.Next(0, 5);
-
-        //        var data = new CameraEvent(Id, DateTime.UtcNow, peopleIn, peopleOut);
-
-        //        foreach (var observer in _observers)
-        //        {
-        //            observer.UpdateOfPeopleCount(data);
-        //        }
-
-        //        await SendReportOfPeopleFlow(data);
-
-        //        await Task.Delay(1000);
-        //    }
-        //}
-
     }
 }
