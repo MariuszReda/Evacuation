@@ -1,15 +1,10 @@
 ﻿using Evacuation.Domain;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Evacuation.Interface
 {
-    public interface ICameraEventDataStore
+    public interface ICameraEventDataStore : IDisposable
     {
-        void SaveEvent(string zoneId, CameraEvent cameraEvent);
+        void SaveEvent(CameraEvent cameraEvent);
         List<CameraEvent> LoadEvents(string zoneId);
         List<string> GetAllZones();
     }

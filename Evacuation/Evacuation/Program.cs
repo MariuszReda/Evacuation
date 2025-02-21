@@ -9,11 +9,13 @@ var cameraSimulators = cameraIds.Select(id => new CameraSimulator(id)).ToList();
 
 var serviceProvider = new ServiceCollection()
     .AddSingleton<ICameraEventDataStore, MockCameraEventDataStore>()
-    .AddSingleton(sp => cameraIds.Select(id => new CameraSimulator(id)).Cast<ICameraSimulator>().ToList())
+    .AddSingleton<IPeopleFlowPublisher, MockPeopleFlowPublisher>()
+    .AddSingleton(sp => cameraIds.Select(id => (ICameraSimulator)new CameraSimulator(id)).ToList())
     .AddSingleton<CentralServer>(sp =>
         new CentralServer(
             sp.GetRequiredService<ICameraEventDataStore>(),
-            sp.GetRequiredService<List<ICameraSimulator>>()
+            sp.GetRequiredService<List<ICameraSimulator>>(),
+            sp.GetRequiredService<IPeopleFlowPublisher>()
         ))
     .BuildServiceProvider();
 

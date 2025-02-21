@@ -1,11 +1,8 @@
 ﻿using Evacuation.Domain;
 using Evacuation.Interface;
-using System.Text.Json;
 
 namespace Evacuation
 {
-
-    //Symuluje prace kamery
     public class CameraSimulator : ICameraSimulator
     {
         private readonly Random _random = new Random();
@@ -21,7 +18,7 @@ namespace Evacuation
         public async Task<string> GenerateEventAsync(string cameraId)
         {
 
-            await Task.Delay(_random.Next(1000, 5000)); // Symulacja opóźnienia
+            await Task.Delay(_random.Next(1000, 5000));
             var cameraEvent = new CameraEvent(
                 cameraId,
                 DateTime.UtcNow,
@@ -29,11 +26,7 @@ namespace Evacuation
                 _random.Next(0, 5)
             );
 
-            string message = $"[{cameraEvent.Timestamp}] Kamera {cameraEvent.CameraId}: " +
-                $"IN {cameraEvent.PeopleIn}, OUT {cameraEvent.PeopleOut}.";
-
-            return message;
-
+            return CameraEventSerializer.ToJson(cameraEvent);
         }
     }
 }

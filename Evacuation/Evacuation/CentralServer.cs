@@ -1,22 +1,21 @@
 ﻿using Evacuation.Domain;
 using Evacuation.Interface;
-using System.Data.Common;
-using System.Threading.Channels;
 
 namespace Evacuation
 {
-    public class CentralServer : ICameraObserver
+    public class CentralServer
     {
-        private readonly List<string> _cameraIds;
         private int _totalPeople = 0;
         private readonly Dictionary<string, ZoneOccupancy> _zones = new();
         private readonly List<ICameraSimulator> _cameraSimulators;
         private readonly ICameraEventDataStore _repository;
+        private readonly IPeopleFlowPublisher _publisher;
 
-        public CentralServer(ICameraEventDataStore repository, List<ICameraSimulator> cameraSimulators)
+        public CentralServer(ICameraEventDataStore repository, List<ICameraSimulator> cameraSimulators, IPeopleFlowPublisher publisher)
         {
             _repository = repository;
             _cameraSimulators = cameraSimulators;
+            _publisher = publisher;
             LoadExistingZones();
             StartListeningCameras();
         }
@@ -32,11 +31,17 @@ namespace Evacuation
                         var tasks = _cameraSimulators.Select(cam => cam.GenerateEventAsync(cam.GetCameraId()));
                         var events = await Task.WhenAll(tasks);
 
-                        foreach (var jsonEvent in events)
+                        await using(_publisher)                        
                         {
-                            Console.WriteLine(jsonEvent);
-                            ProcessCameraEvent(jsonEvent);
+                            foreach (var jsonEvent in events)
+                            {
+                                await _publisher.PublishNumberOfPeopleAsync(jsonEvent);
+                                ProcessCameraEvent(jsonEvent);
+                            }
                         }
+
+
+                        Console.WriteLine($"Total number of people on site {_totalPeople}:");
                     }
                     catch (Exception ex)
                     {
@@ -47,7 +52,7 @@ namespace Evacuation
             });
         }
 
-        public void UpdateOfPeopleCount(CameraEvent data)
+        private void UpdateOfPeopleCount(CameraEvent data)
         {
             _totalPeople += data.PeopleIn - data.PeopleOut;
         }
@@ -61,6 +66,7 @@ namespace Evacuation
             }
             _zones[cameraEvent.CameraId].ProcessEvent(cameraEvent);
             Console.WriteLine($"Processed Event: {jsonEvent}");
+            UpdateOfPeopleCount(cameraEvent);
         }
 
         public IReadOnlyList<CameraEvent>? GetHistoryForZone(string zoneId)

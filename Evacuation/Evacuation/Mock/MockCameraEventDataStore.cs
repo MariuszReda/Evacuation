@@ -1,11 +1,7 @@
 ﻿using Evacuation.Domain;
 using Evacuation.Interface;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Data.Common;
 
 namespace Evacuation.Mock
 {
@@ -13,14 +9,14 @@ namespace Evacuation.Mock
     {
         private readonly ConcurrentDictionary<string, List<CameraEvent>> _storage = new();
         private readonly HashSet<string> _zones = new();
-        public void SaveEvent(string zoneId, CameraEvent cameraEvent)
+        public void SaveEvent(CameraEvent cameraEvent)
         {
-            if (!_storage.ContainsKey(zoneId))
+            if (!_storage.ContainsKey(cameraEvent.CameraId))
             {
-                _storage[zoneId] = new List<CameraEvent>();
-                _zones.Add(zoneId);
+                _storage[cameraEvent.CameraId] = new List<CameraEvent>();
+                _zones.Add(cameraEvent.CameraId);
             }
-            _storage[zoneId].Add(cameraEvent);
+            _storage[cameraEvent.CameraId].Add(cameraEvent);
         }
 
         public List<CameraEvent> LoadEvents(string zoneId)
@@ -31,6 +27,12 @@ namespace Evacuation.Mock
         public List<string> GetAllZones()
         {
             return _zones.ToList();
+        }
+
+        public void Dispose()
+        {
+            Console.WriteLine("Close connection to DB");
+            GC.SuppressFinalize(this);
         }
     }
 }

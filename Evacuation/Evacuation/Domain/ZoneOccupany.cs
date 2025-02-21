@@ -10,11 +10,11 @@ namespace Evacuation.Domain
         public int CurrentOccupancy { get; private set; }
         private List<CameraEvent> _eventHistory = new();
         private readonly ICameraEventDataStore _cameraEventRepository;
-        public ZoneOccupancy(string cameraId, ICameraEventDataStore _cameraEventRepository)
+        public ZoneOccupancy(string cameraId, ICameraEventDataStore cameraEventRepository)
         {
             CameraId = cameraId ?? throw new ArgumentNullException(nameof(cameraId));
             CurrentOccupancy = 0;
-            _cameraEventRepository = _cameraEventRepository;
+            _cameraEventRepository = cameraEventRepository;
             LoadHistory();
         }
 
