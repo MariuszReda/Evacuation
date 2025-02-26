@@ -33,7 +33,6 @@ Program.cs – Główny plik startowy aplikacji. <br />
  Dependency Injection (DI) – Umożliwia łatwe zarządzanie zależnościami i modularność kodu. <br />
  Repository Pattern – Abstrahuje operacje na danych, ułatwiając testowanie i wymianę warstwy danych. <br />
  Observer Pattern – CentralServer nasłuchuje zdarzeń generowanych przez CameraSimulator. <br />
- Factory Pattern – Tworzenie dynamicznych instancji ICameraEventDataStore, IPeopleFlowPublisher. <br />
  
  ## Jak uruchomić
 skompiluj całe rozwiązanie uruchom plik wykonalny
